@@ -5,7 +5,7 @@ FROM node:18 AS build
 WORKDIR /app
 
 # Copy package.json and package-lock.json to install dependencies first
-COPY package*.json ./
+COPY package*.json  ./
 
 # Install dependencies
 RUN npm install
@@ -28,5 +28,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Expose port 80
 EXPOSE 80
 
-# Start Nginx
+# Override the default entrypoint
 CMD ["nginx", "-g", "daemon off;"]
