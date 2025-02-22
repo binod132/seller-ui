@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seller-ui
+  labels:
+    app: seller-ui
+spec:
+  replicas: 3 # Number of replicas (Pods)
+  selector:
+    matchLabels:
+      app: seller-ui
+  template:
+    metadata:
+      labels:
+        app: seller-ui
+    spec:
+      containers:
+        - name: seller-ui
+          image: binod132/ecomm-frontend:latest # Replace with your Docker image
+          ports:
+            - containerPort: 80 # Port exposed by the container
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seller-ui
+  labels:
+    app: seller-ui
+spec:
+  type: LoadBalancer # Exposes the service externally (cloud providers only)
+  ports:
+    - port: 80 # Port exposed by the service
+      targetPort: 80 # Port exposed by the container
+  selector:
+    app: seller-ui
