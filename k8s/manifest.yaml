@@ -6,7 +6,7 @@ metadata:
   labels:
     app: seller-ui
 spec:
-  replicas: 3 # Number of replicas (Pods)
+  replicas: 1 # Number of replicas (Pods)
   selector:
     matchLabels:
       app: seller-ui
