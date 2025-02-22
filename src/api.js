@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000"; // Replace with your backend URL
+const API_BASE_URL = "http://172.29.90.207:8000"; // Replace with your backend URL
 
 export const loginSeller = async (credentials) => {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
