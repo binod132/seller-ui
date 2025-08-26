@@ -11,7 +11,8 @@ pipeline {
 
         stage('Build & Push - Dev') {
             when {
-                branch 'dev'
+                expression { BRANCH_NAME ==~ /(dev)/ }
+
             }
             steps {
                 script {
@@ -27,7 +28,8 @@ pipeline {
 
         stage('Build & Push - Prod') {
             when {
-                branch 'main'
+                expression { BRANCH_NAME ==~ /(main)/ }
+
             }
             steps {
                 script {
