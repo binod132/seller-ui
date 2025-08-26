@@ -60,3 +60,14 @@ spec:
                     docker.withRegistry('https://index.docker.io/v1/', registryCredential) {
                         def app = docker.build("${imageNameProd}")
                         app.push("${DATE_TAG}-${env.BUILD_NUMBER}")
+                        app.push("latest")
+                    }
+                }
+            }
+        }
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+}
