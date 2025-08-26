@@ -29,8 +29,8 @@ spec:
   }
 
   environment {
-    imageNameDev = "binod1243/fuse/dev/ui"
-    imageNameProd = "binod1243/fuse/prod/ui"
+    imageNameDev = "binod1243/fuse"
+    imageNameProd = "binod1243/fuse"
   }
 
   stages {
