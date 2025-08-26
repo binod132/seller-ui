@@ -18,8 +18,11 @@ spec:
           mountPath: /kaniko/.docker
   volumes:
     - name: kaniko-secret
-      secret:
-        secretName: docker-hub-creds
+        secret:
+            secretName: dockercred
+            items:
+            - key: .dockerconfigjson
+              path: config.json
 """
       defaultContainer 'kaniko'
     }
