@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            defaultContainer 'docker'
+        }
+    }
 
     environment {
         imageNameDev = "binod1243/fuse/dev/ui"
