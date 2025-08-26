@@ -4,19 +4,14 @@ pipeline {
             yaml """
 apiVersion: v1
 kind: Pod
-metadata:
-  labels:
-    some-label: jenkins-docker-agent
 spec:
   containers:
     - name: jnlp
       image: jenkins/inbound-agent:latest
       args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
-      tty: true
     - name: docker
       image: docker:24
-      command:
-        - cat
+      command: ['cat']
       tty: true
       volumeMounts:
         - name: docker-socket
@@ -25,6 +20,7 @@ spec:
     - name: docker-socket
       hostPath:
         path: /var/run/docker.sock
+        type: Socket
 """
             defaultContainer 'docker'
         }
@@ -64,15 +60,3 @@ spec:
                     docker.withRegistry('https://index.docker.io/v1/', registryCredential) {
                         def app = docker.build("${imageNameProd}")
                         app.push("${DATE_TAG}-${env.BUILD_NUMBER}")
-                        app.push("latest")
-                    }
-                }
-            }
-        }
-
-    }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-}
