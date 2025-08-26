@@ -17,7 +17,7 @@ pipeline {
             steps {
                 script {
                     def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
-                    docker.withRegistry('https://harbor.fonepay.com', registryCredential) {
+                    docker.withRegistry('https://index.docker.io/v1/', registryCredential) {
                         def app = docker.build("${imageNameDev}")
                         app.push("${DATE_TAG}-${env.BUILD_NUMBER}")
                         app.push("dev-latest")
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
-                    docker.withRegistry('https://harbor.fonepay.com', registryCredential) {
+                    docker.withRegistry('https://index.docker.io/v1/', registryCredential) {
                         def app = docker.build("${imageNameProd}")
                         app.push("${DATE_TAG}-${env.BUILD_NUMBER}")
                         app.push("latest")
