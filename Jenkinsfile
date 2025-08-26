@@ -6,34 +6,30 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - name: jnlp
-      image: jenkins/inbound-agent:latest
-      args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
-    - name: docker
-      image: docker:24
-      command: ['cat']
-      tty: true
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:latest
+      command:
+        - sleep
+        - infinity
       volumeMounts:
-        - name: docker-socket
-          mountPath: /var/run/docker.sock
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
   volumes:
-    - name: docker-socket
-      hostPath:
-        path: /var/run/docker.sock
-        type: Socket
+    - name: kaniko-secret
+      secret:
+        secretName: docker-hub-creds-kaniko
 """
-            defaultContainer 'docker'
+            defaultContainer 'kaniko'
         }
     }
 
     environment {
         imageNameDev = "binod1243/fuse/dev/ui"
         imageNameProd = "binod1243/fuse/prod/ui"
-        registryCredential = 'docker-hub-creds'
+        registrySecretName = "docker-hub-creds"
     }
 
     stages {
-
         stage('Build & Push - Dev') {
             when {
                 expression { env.BRANCH_NAME ==~ /(dev)/ }
@@ -41,11 +37,14 @@ spec:
             steps {
                 script {
                     def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
-                    docker.withRegistry('https://index.docker.io/v1/', registryCredential) {
-                        def app = docker.build("${imageNameDev}")
-                        app.push("${DATE_TAG}-${env.BUILD_NUMBER}")
-                        app.push("dev-latest")
-                    }
+                    sh """
+                    /kaniko/executor \
+                      --dockerfile=Dockerfile \
+                      --context=${env.WORKSPACE} \
+                      --destination=${imageNameDev}:${DATE_TAG}-${env.BUILD_NUMBER} \
+                      --destination=${imageNameDev}:dev-latest \
+                      --verbosity=info
+                    """
                 }
             }
         }
@@ -57,11 +56,14 @@ spec:
             steps {
                 script {
                     def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
-                    docker.withRegistry('https://index.docker.io/v1/', registryCredential) {
-                        def app = docker.build("${imageNameProd}")
-                        app.push("${DATE_TAG}-${env.BUILD_NUMBER}")
-                        app.push("latest")
-                    }
+                    sh """
+                    /kaniko/executor \
+                      --dockerfile=Dockerfile \
+                      --context=${env.WORKSPACE} \
+                      --destination=${imageNameProd}:${DATE_TAG}-${env.BUILD_NUMBER} \
+                      --destination=${imageNameProd}:latest \
+                      --verbosity=info
+                    """
                 }
             }
         }
