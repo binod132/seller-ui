@@ -11,7 +11,7 @@ pipeline {
 
         stage('Build & Push - Dev') {
             when {
-                expression { BRANCH_NAME ==~ /(dev)/ }
+                expression { env.BRANCH_NAME ==~ /(dev)/ }
 
             }
             steps {
@@ -28,7 +28,7 @@ pipeline {
 
         stage('Build & Push - Prod') {
             when {
-                expression { BRANCH_NAME ==~ /(main)/ }
+                expression { env.BRANCH_NAME ==~ /(main)/ }
 
             }
             steps {
