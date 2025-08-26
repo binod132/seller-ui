@@ -1,7 +1,7 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml """
+  agent {
+    kubernetes {
+      yaml """
 apiVersion: v1
 kind: Pod
 spec:
@@ -9,6 +9,8 @@ spec:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:latest
       tty: true
+      command:
+        - cat
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
@@ -17,57 +19,57 @@ spec:
       secret:
         secretName: docker-hub-creds
 """
-            defaultContainer 'kaniko'
+      defaultContainer 'kaniko'
+    }
+  }
+
+  environment {
+    imageNameDev = "binod1243/fuse/dev/ui"
+    imageNameProd = "binod1243/fuse/prod/ui"
+  }
+
+  stages {
+    stage('Build & Push - Dev') {
+      when { expression { env.BRANCH_NAME ==~ /(dev)/ } }
+      steps {
+        script {
+          def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
+          // Run Kaniko executor inside the running kaniko container
+          container('kaniko') {
+            sh """
+              /kaniko/executor \
+                --dockerfile=Dockerfile \
+                --context=\$WORKSPACE \
+                --destination=${imageNameDev}:${DATE_TAG}-${BUILD_NUMBER} \
+                --destination=${imageNameDev}:dev-latest \
+                --verbosity=info
+            """
+          }
         }
+      }
     }
 
-    environment {
-        imageNameDev = "binod1243/fuse/dev/ui"
-        imageNameProd = "binod1243/fuse/prod/ui"
-        registrySecretName = "docker-hub-creds"
-    }
-
-    stages {
-        stage('Build & Push - Dev') {
-            when {
-                expression { env.BRANCH_NAME ==~ /(dev)/ }
-            }
-            steps {
-                script {
-                    def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
-                    sh """
-                    /kaniko/executor \
-                      --dockerfile=Dockerfile \
-                      --context=${env.WORKSPACE} \
-                      --destination=${imageNameDev}:${DATE_TAG}-${env.BUILD_NUMBER} \
-                      --destination=${imageNameDev}:dev-latest \
-                      --verbosity=info
-                    """
-                }
-            }
+    stage('Build & Push - Prod') {
+      when { expression { env.BRANCH_NAME ==~ /(main)/ } }
+      steps {
+        script {
+          def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
+          container('kaniko') {
+            sh """
+              /kaniko/executor \
+                --dockerfile=Dockerfile \
+                --context=\$WORKSPACE \
+                --destination=${imageNameProd}:${DATE_TAG}-${BUILD_NUMBER} \
+                --destination=${imageNameProd}:latest \
+                --verbosity=info
+            """
+          }
         }
-
-        stage('Build & Push - Prod') {
-            when {
-                expression { env.BRANCH_NAME ==~ /(main)/ }
-            }
-            steps {
-                script {
-                    def DATE_TAG = java.time.LocalDate.now().toString().replaceAll("-", ".")
-                    sh """
-                    /kaniko/executor \
-                      --dockerfile=Dockerfile \
-                      --context=${env.WORKSPACE} \
-                      --destination=${imageNameProd}:${DATE_TAG}-${env.BUILD_NUMBER} \
-                      --destination=${imageNameProd}:latest \
-                      --verbosity=info
-                    """
-                }
-            }
-        }
+      }
     }
+  }
 
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+  }
 }
