@@ -1,7 +1,32 @@
 pipeline {
     agent {
         kubernetes {
-            defaultContainer 'default'
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: jenkins-docker-agent
+spec:
+  containers:
+    - name: jnlp
+      image: jenkins/inbound-agent:latest
+      args: ['\$(JENKINS_SECRET)', '\$(JENKINS_NAME)']
+      tty: true
+    - name: docker
+      image: docker:24
+      command:
+        - cat
+      tty: true
+      volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+  volumes:
+    - name: docker-socket
+      hostPath:
+        path: /var/run/docker.sock
+"""
+            defaultContainer 'docker'
         }
     }
 
@@ -16,7 +41,6 @@ pipeline {
         stage('Build & Push - Dev') {
             when {
                 expression { env.BRANCH_NAME ==~ /(dev)/ }
-
             }
             steps {
                 script {
@@ -33,7 +57,6 @@ pipeline {
         stage('Build & Push - Prod') {
             when {
                 expression { env.BRANCH_NAME ==~ /(main)/ }
-
             }
             steps {
                 script {
