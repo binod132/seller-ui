@@ -17,7 +17,7 @@ spec:
   volumes:
     - name: kaniko-secret
       secret:
-        secretName: docker-hub-creds-kaniko
+        secretName: docker-hub-creds
 """
             defaultContainer 'kaniko'
         }
