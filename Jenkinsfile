@@ -6,6 +6,11 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+  - name: node
+    image: node:18
+    command:
+    - cat
+    tty: true
     - name: kaniko
       image: gcr.io/kaniko-project/executor:debug
       tty: true
